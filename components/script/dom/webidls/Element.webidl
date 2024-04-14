@@ -28,6 +28,8 @@ interface Element : Node {
            attribute DOMString id;
   [CEReactions, Pure]
            attribute DOMString className;
+  [CEReactions, Pure]
+           attribute DOMString ariaChecked;
   [SameObject, PutForwards=value]
   readonly attribute DOMTokenList classList;
 

@@ -2041,6 +2041,13 @@ impl ElementMethods for Element {
         DOMString::from(&*name)
     }
 
+    fn AriaChecked(&self) -> DOMString {
+        self.get_string_attribute(&local_name!("aria-checked"))
+    }
+    fn SetAriaChecked(&self, id: DOMString) {
+        self.set_atomic_attribute(&local_name!("aria-checked"), id);
+    }
+
     // https://dom.spec.whatwg.org/#dom-element-id
     // This always returns a string; if you'd rather see None
     // on a null id, call get_id
