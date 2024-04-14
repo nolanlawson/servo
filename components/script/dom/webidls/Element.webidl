@@ -28,8 +28,6 @@ interface Element : Node {
            attribute DOMString id;
   [CEReactions, Pure]
            attribute DOMString className;
-  [CEReactions, Pure]
-           attribute DOMString ariaChecked;
   [SameObject, PutForwards=value]
   readonly attribute DOMTokenList classList;
 
@@ -86,6 +84,11 @@ interface Element : Node {
   undefined insertAdjacentHTML(DOMString position, DOMString html);
 
   [Throws, Pref="dom.shadowdom.enabled"] ShadowRoot attachShadow();
+
+  [CEReactions, Pure]
+           attribute DOMString ariaChecked;
+  [CEReactions, Pure]
+           attribute DOMString ariaLabel;
 };
 
 // http://dev.w3.org/csswg/cssom-view/#extensions-to-the-element-interface

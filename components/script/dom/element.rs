@@ -2041,13 +2041,6 @@ impl ElementMethods for Element {
         DOMString::from(&*name)
     }
 
-    fn AriaChecked(&self) -> DOMString {
-        self.get_string_attribute(&local_name!("aria-checked"))
-    }
-    fn SetAriaChecked(&self, id: DOMString) {
-        self.set_atomic_attribute(&local_name!("aria-checked"), id);
-    }
-
     // https://dom.spec.whatwg.org/#dom-element-id
     // This always returns a string; if you'd rather see None
     // on a null id, call get_id
@@ -2923,6 +2916,20 @@ impl ElementMethods for Element {
     // https://dom.spec.whatwg.org/#dom-element-attachshadow
     fn AttachShadow(&self) -> Fallible<DomRoot<ShadowRoot>> {
         self.attach_shadow(IsUserAgentWidget::No)
+    }
+
+    fn AriaChecked(&self) -> DOMString {
+        self.get_string_attribute(&local_name!("aria-checked"))
+    }
+    fn SetAriaChecked(&self, id: DOMString) {
+        self.set_atomic_attribute(&local_name!("aria-checked"), id);
+    }
+
+    fn AriaLabel(&self) -> DOMString {
+        self.get_string_attribute(&local_name!("aria-label"))
+    }
+    fn SetAriaLabel(&self, id: DOMString) {
+        self.set_atomic_attribute(&local_name!("aria-label"), id);
     }
 }
 
