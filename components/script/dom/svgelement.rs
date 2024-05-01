@@ -7,13 +7,14 @@ use html5ever::{local_name, namespace_url, ns, LocalName, Prefix};
 use js::rust::HandleObject;
 use style_traits::dom::ElementState;
 
+use crate::dom::bindings::codegen::Bindings::FocusOptionsBinding::FocusOptions;
 use crate::dom::bindings::codegen::Bindings::SVGElementBinding::SVGElementMethods;
 use crate::dom::bindings::inheritance::Castable;
 use crate::dom::bindings::root::{Dom, DomRoot, MutNullableDom};
 use crate::dom::cssstyledeclaration::{CSSModificationAccess, CSSStyleDeclaration, CSSStyleOwner};
-use crate::dom::document::Document;
+use crate::dom::document::{Document, FocusType};
 use crate::dom::element::Element;
-use crate::dom::node::{window_from_node, Node};
+use crate::dom::node::{document_from_node, window_from_node, Node};
 use crate::dom::virtualmethods::VirtualMethods;
 
 #[dom_struct]
@@ -55,6 +56,10 @@ impl SVGElement {
             proto,
         )
     }
+
+    fn as_element(&self) -> &Element {
+        self.upcast::<Element>()
+    }
 }
 
 impl VirtualMethods for SVGElement {
@@ -86,5 +91,25 @@ impl SVGElementMethods for SVGElement {
     fn SetAutofocus(&self, autofocus: bool) {
         self.element
             .set_bool_attribute(&local_name!("autofocus"), autofocus);
+    }
+
+    // https://html.spec.whatwg.org/multipage/#dom-focus
+    fn Focus(&self, _options: &FocusOptions) {
+        // TODO: Implement FocusOptions
+        // TODO: Mark the element as locked for focus and run the focusing steps.
+        // https://html.spec.whatwg.org/multipage/#focusing-steps
+        let document = document_from_node(self);
+        document.request_focus(Some(self.upcast()), FocusType::Element);
+    }
+
+    // https://html.spec.whatwg.org/multipage/#dom-blur
+    fn Blur(&self) {
+        // TODO: Run the unfocusing steps.
+        if !self.as_element().focus_state() {
+            return;
+        }
+        // https://html.spec.whatwg.org/multipage/#unfocusing-steps
+        let document = document_from_node(self);
+        document.request_focus(None, FocusType::Element);
     }
 }

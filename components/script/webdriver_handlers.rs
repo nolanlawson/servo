@@ -29,6 +29,7 @@ use crate::dom::bindings::codegen::Bindings::CSSStyleDeclarationBinding::CSSStyl
 use crate::dom::bindings::codegen::Bindings::DOMRectBinding::DOMRectMethods;
 use crate::dom::bindings::codegen::Bindings::DocumentBinding::DocumentMethods;
 use crate::dom::bindings::codegen::Bindings::ElementBinding::ElementMethods;
+use crate::dom::bindings::codegen::Bindings::FocusOptionsBinding::FocusOptions;
 use crate::dom::bindings::codegen::Bindings::HTMLElementBinding::HTMLElementMethods;
 use crate::dom::bindings::codegen::Bindings::HTMLInputElementBinding::HTMLInputElementMethods;
 use crate::dom::bindings::codegen::Bindings::HTMLOptionElementBinding::HTMLOptionElementMethods;
@@ -683,7 +684,10 @@ pub fn handle_focus_element(
                 match node.downcast::<HTMLElement>() {
                     Some(element) => {
                         // Need a way to find if this actually succeeded
-                        element.Focus();
+                        element.Focus(&FocusOptions {
+                            preventScroll: false,
+                            focusVisible: Some(false),
+                        });
                         Ok(())
                     },
                     None => Err(ErrorStatus::UnknownError),
@@ -1119,7 +1123,10 @@ pub fn handle_element_click(
 
                         // Step 8.5
                         match parent_node.downcast::<HTMLElement>() {
-                            Some(html_element) => html_element.Focus(),
+                            Some(html_element) => html_element.Focus(&FocusOptions {
+                                preventScroll: false,
+                                focusVisible: Some(false),
+                            }),
                             None => return Err(ErrorStatus::UnknownError),
                         }
 

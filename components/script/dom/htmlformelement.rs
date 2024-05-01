@@ -29,6 +29,7 @@ use crate::dom::bindings::codegen::Bindings::AttrBinding::Attr_Binding::AttrMeth
 use crate::dom::bindings::codegen::Bindings::BlobBinding::BlobMethods;
 use crate::dom::bindings::codegen::Bindings::DocumentBinding::DocumentMethods;
 use crate::dom::bindings::codegen::Bindings::EventBinding::EventMethods;
+use crate::dom::bindings::codegen::Bindings::FocusOptionsBinding::FocusOptions;
 use crate::dom::bindings::codegen::Bindings::HTMLButtonElementBinding::HTMLButtonElementMethods;
 use crate::dom::bindings::codegen::Bindings::HTMLElementBinding::HTMLElementMethods;
 use crate::dom::bindings::codegen::Bindings::HTMLFormControlsCollectionBinding::HTMLFormControlsCollectionMethods;
@@ -1023,7 +1024,10 @@ impl HTMLFormElement {
             }
             if first {
                 if let Some(html_elem) = elem.downcast::<HTMLElement>() {
-                    html_elem.Focus();
+                    html_elem.Focus(&FocusOptions {
+                        preventScroll: false,
+                        focusVisible: Some(false),
+                    });
                     first = false;
                 }
             }

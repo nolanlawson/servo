@@ -35,8 +35,6 @@ interface HTMLElement : Element {
   undefined click();
   // [CEReactions]
   //         attribute long tabIndex;
-  undefined focus();
-  undefined blur();
   // [CEReactions]
   //         attribute DOMString accessKey;
   //readonly attribute DOMString accessKeyLabel;

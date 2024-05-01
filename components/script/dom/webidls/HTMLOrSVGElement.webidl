@@ -15,6 +15,6 @@ interface mixin HTMLOrSVGElement {
 
   [CEReactions] attribute boolean autofocus;
   // [CEReactions] attribute long tabIndex;
-  // undefined focus(optional FocusOptions options = {});
-  // undefined blur();
+  undefined focus(optional FocusOptions options = {});
+  undefined blur();
 };

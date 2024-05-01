@@ -14,8 +14,6 @@ interface SVGElement : Element {
   //readonly attribute SVGElement? viewportElement;
 
   //attribute long tabIndex;
-  //void focus();
-  //void blur();
 };
 
 //SVGElement includes GlobalEventHandlers;

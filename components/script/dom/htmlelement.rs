@@ -18,6 +18,7 @@ use crate::dom::attr::Attr;
 use crate::dom::bindings::codegen::Bindings::EventHandlerBinding::{
     EventHandlerNonNull, OnErrorEventHandlerNonNull,
 };
+use crate::dom::bindings::codegen::Bindings::FocusOptionsBinding::FocusOptions;
 use crate::dom::bindings::codegen::Bindings::HTMLElementBinding::HTMLElementMethods;
 use crate::dom::bindings::codegen::Bindings::HTMLLabelElementBinding::HTMLLabelElementMethods;
 use crate::dom::bindings::codegen::Bindings::NodeBinding::Node_Binding::NodeMethods;
@@ -373,7 +374,8 @@ impl HTMLElementMethods for HTMLElement {
     }
 
     // https://html.spec.whatwg.org/multipage/#dom-focus
-    fn Focus(&self) {
+    fn Focus(&self, _options: &FocusOptions) {
+        // TODO: Implement FocusOptions
         // TODO: Mark the element as locked for focus and run the focusing steps.
         // https://html.spec.whatwg.org/multipage/#focusing-steps
         let document = document_from_node(self);
