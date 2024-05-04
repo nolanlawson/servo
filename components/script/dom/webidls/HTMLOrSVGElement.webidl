@@ -10,11 +10,11 @@
  */
 
 interface mixin HTMLOrSVGElement {
-  // [SameObject] readonly attribute DOMStringMap dataset;
+  [SameObject] readonly attribute DOMStringMap dataset;
   // attribute DOMString nonce; // intentionally no [CEReactions]
 
   [CEReactions] attribute boolean autofocus;
   // [CEReactions] attribute long tabIndex;
-  // undefined focus(optional FocusOptions options = {});
-  // undefined blur();
+  undefined focus(); // TODO: should be: undefined focus(optional FocusOptions options = {});
+  undefined blur();
 };

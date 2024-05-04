@@ -55,6 +55,10 @@ impl SVGElement {
             proto,
         )
     }
+
+    fn as_element(&self) -> &Element {
+        self.upcast::<Element>()
+    }
 }
 
 impl VirtualMethods for SVGElement {
@@ -86,5 +90,24 @@ impl SVGElementMethods for SVGElement {
     fn SetAutofocus(&self, autofocus: bool) {
         self.element
             .set_bool_attribute(&local_name!("autofocus"), autofocus);
+    }
+
+    // https://html.spec.whatwg.org/multipage/#dom-focus
+    fn Focus(&self) {
+        // TODO: Mark the element as locked for focus and run the focusing steps.
+        // https://html.spec.whatwg.org/multipage/#focusing-steps
+        let document = document_from_node(self);
+        document.request_focus(Some(self.upcast()), FocusType::Element);
+    }
+
+    // https://html.spec.whatwg.org/multipage/#dom-blur
+    fn Blur(&self) {
+        // TODO: Run the unfocusing steps.
+        if !self.as_element().focus_state() {
+            return;
+        }
+        // https://html.spec.whatwg.org/multipage/#unfocusing-steps
+        let document = document_from_node(self);
+        document.request_focus(None, FocusType::Element);
     }
 }

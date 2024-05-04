@@ -16,7 +16,6 @@ interface HTMLElement : Element {
            attribute boolean translate;
   [CEReactions]
            attribute DOMString dir;
-  readonly attribute DOMStringMap dataset;
 
   // microdata
   //         attribute boolean itemScope;
@@ -35,8 +34,6 @@ interface HTMLElement : Element {
   undefined click();
   // [CEReactions]
   //         attribute long tabIndex;
-  undefined focus();
-  undefined blur();
   // [CEReactions]
   //         attribute DOMString accessKey;
   //readonly attribute DOMString accessKeyLabel;
