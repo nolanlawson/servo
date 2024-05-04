@@ -11,15 +11,17 @@ use crate::dom::bindings::codegen::Bindings::SVGElementBinding::SVGElementMethod
 use crate::dom::bindings::inheritance::Castable;
 use crate::dom::bindings::root::{Dom, DomRoot, MutNullableDom};
 use crate::dom::cssstyledeclaration::{CSSModificationAccess, CSSStyleDeclaration, CSSStyleOwner};
-use crate::dom::document::Document;
+use crate::dom::document::{Document, FocusType};
+use crate::dom::domstringmap::DOMStringMap;
 use crate::dom::element::Element;
-use crate::dom::node::{window_from_node, Node};
+use crate::dom::node::{window_from_node, Node, document_from_node};
 use crate::dom::virtualmethods::VirtualMethods;
 
 #[dom_struct]
 pub struct SVGElement {
     element: Element,
     style_decl: MutNullableDom<CSSStyleDeclaration>,
+    dataset: MutNullableDom<DOMStringMap>,
 }
 
 impl SVGElement {
@@ -40,6 +42,7 @@ impl SVGElement {
         SVGElement {
             element: Element::new_inherited_with_state(state, tag_name, ns!(svg), prefix, document),
             style_decl: Default::default(),
+            dataset: Default::default(),
         }
     }
 
@@ -109,5 +112,10 @@ impl SVGElementMethods for SVGElement {
         // https://html.spec.whatwg.org/multipage/#unfocusing-steps
         let document = document_from_node(self);
         document.request_focus(None, FocusType::Element);
+    }
+
+    // https://html.spec.whatwg.org/multipage/#dom-dataset
+    fn Dataset(&self) -> DomRoot<DOMStringMap> {
+        self.dataset.or_init(|| DOMStringMap::new(self))
     }
 }
