@@ -49,6 +49,7 @@ interface HTMLElement : Element {
   // void forceSpellCheck();
 
   attribute [LegacyNullToEmptyString] DOMString innerText;
+  attribute [LegacyNullToEmptyString] DOMString outerText;
 
   [Throws] ElementInternals attachInternals();
 

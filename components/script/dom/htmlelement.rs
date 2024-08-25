@@ -450,21 +450,7 @@ impl HTMLElementMethods for HTMLElement {
 
     // https://html.spec.whatwg.org/multipage/#the-innertext-idl-attribute
     fn InnerText(&self) -> DOMString {
-        let node = self.upcast::<Node>();
-        let window = window_from_node(node);
-        let element = self.as_element();
-
-        // Step 1.
-        let element_not_rendered = !node.is_connected() || !element.has_css_layout_box();
-        if element_not_rendered {
-            return node.GetTextContent().unwrap();
-        }
-
-        window.layout_reflow(QueryMsg::ElementInnerTextQuery);
-        let text = window
-            .layout()
-            .query_element_inner_text(node.to_trusted_node_address());
-        DOMString::from(text)
+        get_inner_or_outer_text(self)
     }
 
     // https://html.spec.whatwg.org/multipage/#the-innertext-idl-attribute
@@ -513,6 +499,15 @@ impl HTMLElementMethods for HTMLElement {
 
         // Step 7.
         Node::replace_all(Some(fragment.upcast()), self.upcast::<Node>());
+    }
+
+    // https://html.spec.whatwg.org/multipage/#the-outertext-idl-attribute
+    fn OuterText(&self) -> DOMString {
+        get_inner_or_outer_text(self)
+    }
+
+    fn SetOuterText(&self, _input: DOMString) {
+        // FIXME: implement
     }
 
     // https://html.spec.whatwg.org/multipage/#dom-translate
@@ -602,6 +597,25 @@ impl HTMLElementMethods for HTMLElement {
         self.element
             .set_bool_attribute(&local_name!("autofocus"), autofocus);
     }
+}
+
+// https://html.spec.whatwg.org/multipage/dom.html#the-innertext-idl-attribute
+fn get_inner_or_outer_text(element: &HTMLElement) -> DOMString {
+    let node = element.upcast::<Node>();
+    let window = window_from_node(node);
+    let element = element.as_element();
+
+    // Step 1.
+    let element_not_rendered = !node.is_connected() || !element.has_css_layout_box();
+    if element_not_rendered {
+        return node.GetTextContent().unwrap();
+    }
+
+    window.layout_reflow(QueryMsg::ElementInnerTextQuery);
+    let text = window
+        .layout()
+        .query_element_inner_text(node.to_trusted_node_address());
+    DOMString::from(text)
 }
 
 fn append_text_node_to_fragment(document: &Document, fragment: &DocumentFragment, text: String) {

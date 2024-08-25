@@ -12,7 +12,7 @@ use log::warn;
 use script_layout_interface::wrapper_traits::{
     LayoutNode, ThreadSafeLayoutElement, ThreadSafeLayoutNode,
 };
-use script_layout_interface::OffsetParentResponse;
+use script_layout_interface::{LayoutElementType, LayoutNodeType, OffsetParentResponse};
 use servo_arc::Arc as ServoArc;
 use servo_url::ServoUrl;
 use style::computed_values::position::T as Position;
@@ -28,9 +28,12 @@ use style::shared_lock::SharedRwLock;
 use style::stylesheets::{CssRuleType, Origin, UrlExtraData};
 use style::stylist::RuleInclusion;
 use style::traversal::resolve_style;
+use style::values::computed::Display;
 use style::values::generics::font::LineHeight;
 use style_traits::{ParsingMode, ToCss};
-
+use style::properties::longhands::visibility::computed_value::T as Visibility;
+use style::computed_values::white_space_collapse::T as WhiteSpaceCollapse;
+use crate::flow::inline::construct::WhitespaceCollapse;
 use crate::fragment_tree::{BoxFragment, Fragment, FragmentFlags, FragmentTree, Tag};
 use crate::style_ext::ComputedValuesExt;
 
@@ -508,9 +511,149 @@ fn is_eligible_parent(fragment: &BoxFragment) -> bool {
             .contains(FragmentFlags::IS_TABLE_TH_OR_TD_ELEMENT)
 }
 
+enum InnerTextItem {
+    Text(String),
+    RequiredLineBreakCount(u32),
+}
+
 // https://html.spec.whatwg.org/multipage/#the-innertext-idl-attribute
-pub fn process_element_inner_text_query<'dom>(_node: impl LayoutNode<'dom>) -> String {
-    "".to_owned()
+pub fn process_element_inner_text_query<'dom>(
+    node: impl LayoutNode<'dom>,
+) -> String {
+    // Step 2.
+    let mut results = Vec::new();
+    inner_text_collection_steps(node, &mut results);
+    let mut max_req_line_break_count = 0;
+    let mut inner_text = Vec::new();
+    for item in results {
+        match item {
+            InnerTextItem::Text(s) => {
+                if max_req_line_break_count > 0 {
+                    // Step 5.
+                    for _ in 0..max_req_line_break_count {
+                        inner_text.push("\u{000A}".to_owned());
+                    }
+                    max_req_line_break_count = 0;
+                }
+                // Step 3.
+                if !s.is_empty() {
+                    inner_text.push(s.to_owned());
+                }
+            },
+            InnerTextItem::RequiredLineBreakCount(count) => {
+                // Step 4.
+                if inner_text.is_empty() {
+                    // Remove required line break count at the start.
+                    continue;
+                }
+                // Store the count if it's the max of this run,
+                // but it may be ignored if no text item is found afterwards,
+                // which means that these are consecutive line breaks at the end.
+                if count > max_req_line_break_count {
+                    max_req_line_break_count = count;
+                }
+            },
+        }
+    }
+    inner_text.into_iter().collect()
+}
+
+// https://html.spec.whatwg.org/multipage/#inner-text-collection-steps
+fn inner_text_collection_steps<'dom>(
+    node: impl LayoutNode<'dom>,
+    results: &mut Vec<InnerTextItem>,
+) {
+    // https://html.spec.whatwg.org/multipage/dom.html#rendered-text-collection-steps
+    // Step 1.
+    let mut items = Vec::new();
+    for child in node.traverse_preorder() {
+        let node = match child.type_id() {
+            LayoutNodeType::Text => child.parent_node().unwrap(),
+            _ => child,
+        };
+
+        let element_data = match node.style_data() {
+            Some(data) => &data.element_data,
+            None => continue,
+        };
+
+        let style = match element_data.borrow().styles.get_primary() {
+            None => continue,
+            Some(style) => style.clone(),
+        };
+
+        // Step 2.
+        if style.get_inherited_box().visibility != Visibility::Visible {
+            continue;
+        }
+
+        // Step 3.
+        let display = style.get_box().display;
+        if !child.is_connected() || display == Display::None {
+            continue;
+        }
+
+        match child.type_id() {
+            LayoutNodeType::Text => {
+                // Step 4.
+                let content = child.to_threadsafe().node_text_content().into_owned();
+                let mut whitespace_collapsed = WhitespaceCollapse::new(
+                    content.chars(),
+                    WhiteSpaceCollapse::Collapse,
+                    true,
+                ).collect::<String>();
+                // FIXME: this should probably go in WhitespaceCollapse itself
+                if Some('\u{0020}' /* space */) == whitespace_collapsed.chars().last() {
+                    // Remove trailing whitespace char
+                    whitespace_collapsed.pop();
+                }
+                items.push(InnerTextItem::Text(whitespace_collapsed));
+            },
+            LayoutNodeType::Element(LayoutElementType::HTMLBRElement) => {
+                // Step 5.
+                items.push(InnerTextItem::Text(String::from(
+                    "\u{000A}", /* line feed */
+                )));
+            },
+            LayoutNodeType::Element(LayoutElementType::HTMLParagraphElement) => {
+                // Step 8.
+                items.insert(0, InnerTextItem::RequiredLineBreakCount(2));
+                items.push(InnerTextItem::RequiredLineBreakCount(2));
+            },
+            _ => {},
+        }
+
+        match display {
+            Display::TableCell if !is_last_table_cell() => {
+                // Step 6.
+                items.push(InnerTextItem::Text(String::from("\u{0009}" /* tab */)));
+            },
+            Display::TableRow if !is_last_table_row() => {
+                // Step 7.
+                items.push(InnerTextItem::Text(String::from(
+                    "\u{000A}", /* line feed */
+                )));
+            },
+            Display::Block | Display::Flex | Display::TableCaption | Display::Table => {
+                // Step 9.
+                items.insert(0, InnerTextItem::RequiredLineBreakCount(1));
+                items.push(InnerTextItem::RequiredLineBreakCount(1));
+            },
+            _ => {},
+        }
+    }
+
+    results.append(&mut items);
+}
+
+fn is_last_table_cell() -> bool {
+    // FIXME Implement this.
+    false
+}
+
+fn is_last_table_row() -> bool {
+    // FIXME Implement this.
+    false
 }
 
 pub fn process_text_index_request(_node: OpaqueNode, _point: Point2D<Au>) -> Option<usize> {
