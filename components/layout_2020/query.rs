@@ -601,9 +601,7 @@ fn inner_text_collection_steps<'dom>(
                     WhitespaceCollapse::new(content.chars(), white_space_collapse, true)
                         .collect::<String>();
                 // Remove trailing whitespace char if white-space collapsing is in effect
-                let should_remove_trailing_whitespace =
-                    matches!(white_space_collapse, WhiteSpaceCollapse::Collapse);
-                if should_remove_trailing_whitespace &&
+                if matches!(white_space_collapse, WhiteSpaceCollapse::Collapse) &&
                     Some('\u{0020}' /* space */) == whitespace_collapsed.chars().last()
                 {
                     whitespace_collapsed.pop();
