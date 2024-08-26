@@ -600,7 +600,7 @@ fn inner_text_collection_steps<'dom>(
                 let mut whitespace_collapsed =
                     WhitespaceCollapse::new(content.chars(), white_space_collapse, true)
                         .collect::<String>();
-                // Remove trailing whitespace char if white-space
+                // Remove trailing whitespace char if white-space collapsing is in effect
                 let should_remove_trailing_whitespace =
                     matches!(white_space_collapse, WhiteSpaceCollapse::Collapse);
                 if should_remove_trailing_whitespace &&
