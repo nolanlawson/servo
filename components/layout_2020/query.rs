@@ -597,14 +597,18 @@ fn inner_text_collection_steps<'dom>(
             LayoutNodeType::Text => {
                 // Step 4.
                 let content = child.to_threadsafe().node_text_content().into_owned();
+                let white_space_collapse = style.clone_white_space_collapse();
                 let mut whitespace_collapsed = WhitespaceCollapse::new(
                     content.chars(),
-                    WhiteSpaceCollapse::Collapse,
+                    white_space_collapse,
                     true,
                 ).collect::<String>();
-                // FIXME: this should probably go in WhitespaceCollapse itself
-                if Some('\u{0020}' /* space */) == whitespace_collapsed.chars().last() {
-                    // Remove trailing whitespace char
+                // Remove trailing whitespace char if white-space
+                let should_remove_trailing_whitespace = matches!(
+                    white_space_collapse,
+                    WhiteSpaceCollapse::Collapse
+                );
+                if should_remove_trailing_whitespace && Some('\u{0020}' /* space */) == whitespace_collapsed.chars().last() {
                     whitespace_collapsed.pop();
                 }
                 items.push(InnerTextItem::Text(whitespace_collapsed));
