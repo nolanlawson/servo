@@ -16,8 +16,10 @@ use script_layout_interface::{LayoutElementType, LayoutNodeType, OffsetParentRes
 use servo_arc::Arc as ServoArc;
 use servo_url::ServoUrl;
 use style::computed_values::position::T as Position;
+use style::computed_values::white_space_collapse::T as WhiteSpaceCollapse;
 use style::context::{QuirksMode, SharedStyleContext, StyleContext, ThreadLocalStyleContext};
 use style::dom::{OpaqueNode, TElement};
+use style::properties::longhands::visibility::computed_value::T as Visibility;
 use style::properties::style_structs::Font;
 use style::properties::{
     parse_one_declaration_into, ComputedValues, Importance, LonghandId, PropertyDeclarationBlock,
@@ -31,8 +33,7 @@ use style::traversal::resolve_style;
 use style::values::computed::Display;
 use style::values::generics::font::LineHeight;
 use style_traits::{ParsingMode, ToCss};
-use style::properties::longhands::visibility::computed_value::T as Visibility;
-use style::computed_values::white_space_collapse::T as WhiteSpaceCollapse;
+
 use crate::flow::inline::construct::WhitespaceCollapse;
 use crate::fragment_tree::{BoxFragment, Fragment, FragmentFlags, FragmentTree, Tag};
 use crate::style_ext::ComputedValuesExt;
@@ -517,9 +518,7 @@ enum InnerTextItem {
 }
 
 // https://html.spec.whatwg.org/multipage/#the-innertext-idl-attribute
-pub fn process_element_inner_text_query<'dom>(
-    node: impl LayoutNode<'dom>,
-) -> String {
+pub fn process_element_inner_text_query<'dom>(node: impl LayoutNode<'dom>) -> String {
     // Step 2.
     let mut results = Vec::new();
     inner_text_collection_steps(node, &mut results);
@@ -598,17 +597,15 @@ fn inner_text_collection_steps<'dom>(
                 // Step 4.
                 let content = child.to_threadsafe().node_text_content().into_owned();
                 let white_space_collapse = style.clone_white_space_collapse();
-                let mut whitespace_collapsed = WhitespaceCollapse::new(
-                    content.chars(),
-                    white_space_collapse,
-                    true,
-                ).collect::<String>();
+                let mut whitespace_collapsed =
+                    WhitespaceCollapse::new(content.chars(), white_space_collapse, true)
+                        .collect::<String>();
                 // Remove trailing whitespace char if white-space
-                let should_remove_trailing_whitespace = matches!(
-                    white_space_collapse,
-                    WhiteSpaceCollapse::Collapse
-                );
-                if should_remove_trailing_whitespace && Some('\u{0020}' /* space */) == whitespace_collapsed.chars().last() {
+                let should_remove_trailing_whitespace =
+                    matches!(white_space_collapse, WhiteSpaceCollapse::Collapse);
+                if should_remove_trailing_whitespace &&
+                    Some('\u{0020}' /* space */) == whitespace_collapsed.chars().last()
+                {
                     whitespace_collapsed.pop();
                 }
                 items.push(InnerTextItem::Text(whitespace_collapsed));
